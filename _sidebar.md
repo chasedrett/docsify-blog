@@ -1,2 +1,2 @@
-* [消息队列](docs/dubbo/)
+* [PRC 框架](docs/dubbo/)
 
