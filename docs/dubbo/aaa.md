@@ -1,150 +1,30 @@
-# 数字三角形_POJ1163
+# TCP 篇
 
-## 1.  [题目链接](http://poj.org/problem?id=1163)
-<font size=4>
-The Triangle
+## TCP 报文格式
+
+![image-20210820151318988](https://gitee.com/chasedrett/sdfgldsjgljslgjhosj/raw/upload/images/20210820151319.png)
+
+- 源端口号和目的端口号：可将其想象为 16 个 0 和 1；
+- 序号：也叫 seq，32 位，计算机随机生成的一个数字，用来对报文进行标识；
+- 确认序号：也叫 ack，32 位，用来表示对接收到的报文的应答；
+- 6 个标志位（各占 1 位）需要用到其中 3 个：
+  - ACK：确认序号标志位，注意是标志位不是序号，只有 1 位，即只能表示 0 和 1；ACK = 1 表示确认序号有效；
+  - SYN：用于发起新连接。如果 SYN = 1，表示这个连接是新发起的；
+  - FIN：用于结束连接。FIN = 1，表示我要结束一个连接；
 
 
-| **Time Limit:** 1000MS       |      | **Memory Limit:** 10000K |
-| ---------------------------- | ---- | ------------------------ |
-| **Total Submissions:** 64081 |      | **Accepted:** 38340      |
 
-Description
+## TCP 三次握手
 
-![image](F7AA902B42FB4E5999376F0221E44663)
+![image-20210820152827438](https://gitee.com/chasedrett/sdfgldsjgljslgjhosj/raw/upload/images/20210820152827.png)
 
-(Figure 1)
+- 第一次：客户端向服务端握手，建立连接，SYN = 1，随机生成一个 seq，假设为 10000；
 
-Figure 1 shows a number triangle. Write a program that calculates the highest sum of numbers passed on a route that starts at the top and ends somewhere on the base. Each step can go either diagonally down to the left or diagonally down to the right.
+> seq 可判断报文是否合法。比如一开始是 10000 的，后面应该是 10001、10002 。。。如果突然来个 900，肯定不合法，丢弃。
 
-Input
+- 第二次：服务端向客户端握手，发送确认与建立连接，ACK = 1，ack = 接收到的 seq + 1；同时回传 SYN = 1，随机生成一个 seq；
+- 第三次：客户端向服务端握手，确认连接，ACK = 1，ack = 收到的 seq + 1；
 
-Your program is to read from standard input. The first line contains one integer N: the number of rows in the triangle. The following N lines describe the data of the triangle. The number of rows in the triangle is > 1 but <= 100. The numbers in the triangle, all integers, are between 0 and 99.
 
-Output
 
-Your program is to write to standard output. The highest sum is written as an integer.
-
-Sample Input
-
-```
-5
-7
-3 8
-8 1 0 
-2 7 4 4
-4 5 2 6 5
-```
-
-Sample Output
-
-```
-30
-```
-
-Source
-
-[IOI 1994](http://poj.org/searchproblem?field=source&key=IOI+1994)
-
-## 2.  解题思路
-
-用二维数组a存放数字三角形，二维数组maxSum保存已经计算出的结果（记忆化，否则会超时）
-
-a[i] [j]：第 i 行第 j 个数字（i, j从1开始算）
-
-maxSum[i] [j]：从a[i] [j] 到底边的各条路径中，最佳路径的数字之和。
-
-问题：求maxSum(1, 1)
-
-从a[i] [j] 出发，下一步只能走a[i+1] [j] 或者a[i+1] [j+1]。故对于N行的三角形：
-
-~~~java
-if (i == n) {
-    maxSum[i][j] = a[i][j];
-} else {
-    int a = maxSum(i + 1, j);
-    int b = maxSum(i + 1, j + 1);
-    maxSum[i][j] = Math.max(a, b) + a[i][j];
-}
-~~~
-
-### 3. 记忆递归性动归算法：
-
-~~~java
-import java.util.Scanner;
-
-public class Main {
-    private static int n;
-    private static int[][] a;
-    private static int[][] maxSum;
-
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        n = sc.nextInt();
-        a = new int[n + 1][];
-        maxSum = new int[n + 1][n + 1];
-        for (int i = 1; i <= n ; i++) {
-            a[i] = new int[i + 1];
-            for (int j = 1; j <= i; j++) {
-                a[i][j] = sc.nextInt();
-            }
-        }
-        System.out.println(maxSum(1, 1));
-    }
-
-    private static int maxSum(int i, int j) {
-        if (maxSum[i][j] != 0) {
-            return maxSum[i][j];
-        }
-        if (i == n) {
-            maxSum[i][j] = a[i][j];
-        } else {
-            int x = maxSum(i + 1, j);
-            int y = maxSum(i + 1, j + 1);
-            maxSum[i][j] = Math.max(x, y) + a[i][j];
-        }
-        return maxSum[i][j];
-    }
-}
-~~~
-
-## 4. 解题思路2（递归转成递推）
-
-maxSum数组的最后一行值等于a数组最后一行的值，故用双重for循环，从倒数第二行开始往第一行进行递推，递归后maxSum[1] [1] 即为所求的值。
-
-## 5. 递归转成递推算法：
-
-~~~java
-import java.util.Scanner;
-
-public class Main {
-    private static int n;
-    private static int[][] a;
-    private static int[][] maxSum;
-
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        n = sc.nextInt();
-        a = new int[n + 1][];
-        maxSum = new int[n + 1][n + 1];
-        for (int i = 1; i <= n ; i++) {
-            a[i] = new int[i + 1];
-            for (int j = 1; j <= i; j++) {
-                a[i][j] = sc.nextInt();
-            }
-        }
-        for (int i = 1; i <= n; i++) {
-            maxSum[n][i] = a[n][i];
-        }
-        for (int i = n - 1; i >= 1; i--) {
-            for (int j = 1; j <= i; j++) {
-                int x = maxSum[i+1][j];
-                int y = maxSum[i+1][j+1];
-                maxSum[i][j] = Math.max(x, y) + a[i][j];
-            }
-        }
-        System.out.println(maxSum[1][1]);
-    }
-}
-~~~
-
+## TCP 四次挥手
